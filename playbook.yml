@@ -1,18 +1,5 @@
 - hosts: server
   gather_facts: False
   become: true
-  vars_files:
-    - vars/default.yml
   roles:
-    - apache
-    - php
-    - mysql
-    - wordpress
-#    - firewall
-  handlers:
-    - name: Restart apache
-      service: name=apache2 state=restarted
-    - name: Reload apache
-      service:
-        name: apache2
-        state: reloaded
+    - asterisk

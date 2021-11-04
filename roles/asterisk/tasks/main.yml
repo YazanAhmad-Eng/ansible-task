@@ -1,0 +1,87 @@
+---
+
+- name: Install Build Dependencies
+  apt:
+    name: "{{ item }}"
+  loop:
+    - curl 
+    - wget
+    - libnewt-dev
+    - libssl-dev
+    - libncurses5-dev
+    - subversion
+    - libsqlite3-dev
+    - build-essential
+    - libjansson-dev 
+    - uuid-dev
+- name: Download  archive Asterisk  tar
+  command: wget https://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-11.25.3.tar.gz
+
+- name: Extract the file 
+  command: tar xvf asterisk-11.25.3.tar.gz
+     
+             
+#- name: download the mp3 decoder library
+#  shell: |
+#      cd asterisk*/
+#      contrib/scripts/get_mp3_source.sh
+#      contrib/scripts/install_prereq install
+#- name: Build and Install Asterisk
+#  shell: |
+ #     aptitude install -y binutils-dev freetds-dev libasound2-dev libbluetooth-dev \
+  #    libcurl4-openssl-dev libedit-dev libgsm1-dev libgtk2.0-dev libical-dev libiksemel-dev \
+   #   libjack-dev liblua5.1-0-dev libmysqlclient-dev libneon27-dev libogg-dev libpopt-dev libpq-dev \
+    #  libsnmp-dev libspandsp-dev libspeex-dev libspeexdsp-dev libsqlite0-dev libusb-dev libvorbis-dev libxml2-dev lua5.1 portaudio19-dev unixodbc-dev uuid
+
+
+
+
+
+
+
+#  - name: Create menuselect.makeopts
+ #   command: make menuselect.makeopt
+
+  #- name: Create menuselect.makeopts
+  #  command: make menuselect.makeopts 
+  
+  # - name: Do a bit of menuselect configuration
+  #   command: >
+  #     menuselect/menuselect --enable format_mp3
+  #     --enable CORE-SOUNDS-EN-WAV --enable CORE-SOUNDS-EN-G722
+  #     --enable EXTRA-SOUNDS-EN-WAV --enable EXTRA-SOUNDS-EN-G722 --enable EXTRA-SOUNDS-EN-GSM
+  #     --disable-category MENUSELECT_MOH
+- name: Make
+  shell: |
+    cd /root/asterisk*/
+    ./configure
+    make 
+- name: Install
+  command: make install 
+- name: progdocs
+  command: make progdoc 
+
+- name: samples
+  command:  make samples 
+
+- name: config
+  command: make config
+
+- name: ldconfig
+  command: ldconfig
+- name: Post installation commands
+  shell: |
+      sudo groupadd asterisk
+      sudo useradd -r -d /var/lib/asterisk -g asterisk asterisk
+      sudo usermod -aG audio,dialout asterisk
+      sudo chown -R asterisk.asterisk /etc/asterisk
+      sudo chown -R asterisk.asterisk /var/{lib,log,spool}/asterisk
+      sudo chown -R asterisk.asterisk /usr/lib/asterisk 
+      echo 'AST_USER="asterisk"' >> /etc/default/asterisk
+      echo 'AST_GROUP="asterisk"' >> /etc/default/asterisk
+      echo 'runuser = asterisk ; The user to run as.' >> /etc/asterisk/asterisk.conf
+      echo 'rungroup = asterisk ; The group to run as.' >> /etc/asterisk/asterisk.conf
+      systemctl restart asterisk
+      systemctl enable asterisk
+      sudo ufw allow proto tcp from any to any port 5060,5061
+
